@@ -1,0 +1,141 @@
+前几天在网上看到用装到U盘里的Linux操作系统（Puppy， Slax， Fanx2也就是Slax的中文版），对此发生了很大的兴趣，就决定自己做一个。
+
+一、U盘里的Puppy4.0
+
+1、下载了Puppy的ISO光盘镜像（http://www.puppylinux.com/download/index.html），然后用VmWare虚拟机模拟光盘启动就可以进入 Live系统了，一个X桌面的系统，系统里有工具可以直接安装Puppy系统到U盘，同时也设置该U盘可以启动了。也有的介绍说吧ISO镜像刻录光盘，然后光盘启动再安装，我这里就省了刻录了，呵呵。
+
+2、另外还有一个很简单的方法，就是把ISO文件用Winrar等压缩软件直接释放到U盘（根目录或者某个目录都行，但是不支持2层或2层以上的目录，我 曾尝试放到bootpuppy目录，启动的时候找不到Pup_400。SFS，这里我放到了/puppy目录），然后下载一个Syslinux（http://www.kernel.org /pub/linux/utils/boot/syslinux/），解压到任意目录，在该目录里有一个Win32目录，里面有一个 syslinux.exe文件；打开命令行，并cd到上述的Win32目录，输入命令参考 http://syslinux.zytor.com/wiki/index.php/SYSLINUX)
+syslinux.exe -ma -d /bootg:       (其中 -d /boot是把命令生成的启动系统文件ldlinux.sys放到该目录，并从该目录寻找syslinux.cfg配置文件，如果没有该选项也可 以，ldlinux.sys会默认放在U盘根目录，且是隐藏的，并且系统会在 根目录、/boot、 /syslinux、/boot/syslinux 四个目录寻找syslinux.cfg. g：是我的U盘的盘符)
+然后到puppy的解压目录找到isolinux.cfg，改成syslinux.cfg， 然后移至 /boot， 大家根据自己的情况
+最后用文本编辑器打开syslinux.cfg并设置好目录
+default puppy
+display boot.msg
+prompt 1
+label puppy
+kernel /puppy/vmlinuz
+append initrd=/puppy/initrd.gz pmedia=usbflsh        (pmedia=usbflsh 删除也可以)
+timeout 50
+大功告成，可以重新启动电脑享受Puppy的快乐了。 当然，不要忘了设置BIOS从U盘启动哦。
+最后我的U盘目录及文件如下
+/boot
+/boot/ldlinux.sys   （隐藏文件)
+/boot/syslinux.cfg
+/puppy
+/puppy/boot.cat
+/puppy/boot.msg
+/puppy/initrd.gz
+/puppy/isolinux.bin
+/puppy/pup_400.sfs
+/puppy/vmlinuz
+/puppy/zdrv_400.sfs
+
+
+二、U盘里的WinPE
+1、 U盘的WinPE安装的方法太多了，网上有很多方法，大家到Google或者Baidu上一搜，有很多方法。简单的像“深度USB启动维护盘制作工具 V3.0.exe”， 安装好软件后，插入优盘，鼠标点两下就搞定了。 还有 “老九WinPE老毛桃最终撒手不管版”，本身就可以刻录光盘直接使用，里面也有安装程序，安装到U盘启动，比深度的稍微麻烦一点，大家注意点就好了。
+
+2、本人感觉syslinux很好用，就想自己做一个用syslinux启动的WinPE，先到网上搜索了一下，然后自己又研究了好长时间，决定采用采用 “syslinux -> ldntldr -> ntldr”模式，在上述Puppy制作第2种方法的基础上继续制作。
+a、修改syslinux.cfg如下
+default /boot/vesamenu.c32        (到下载的syslinux安装包里去找，拷贝到这里就可以了)
+MENU BACKGROUND /boot/peace.jpg          （一个背景图片，大家自己随便找一个吧，640X480的）
+MENU TITLE MultiBoot By Jeff                 （标题而已，随便写吧）
+prompt 0
+timeout 90
+
+label puppy                         （上面的Puppy的启动项，这下可以双启动了）
+MENU LABEL Puppy USB Linux
+kernel /puppy/vmlinuz
+append initrd=/puppy/initrd.gz
+
+label winpe                         （关键是这里）
+MENU LABEL WinPE Origin From Maotao
+kernel /ldntldr                   
+append initrd=/ntldr
+
+label reboot
+       MENU LABEL Reboot
+       kernel /boot/reboot.c32
+
+其中，ldntldr文件最麻烦，网上很多帖子都提到了这个文件的使用等，就是没提怎么得到这个文件，我找了很久终于在一个帖子里发现它是Loadbin的一个工具，又去搜索loadbin，发现它又是grubutil的一个工具，终于找到了下载地址（http://download.gna.org /grubutil/），我下载的是loadbin-0.1-bin-w32-2008-03-01.zip， 解压后终于发现了可爱的ldntldr.bin，赶紧复制到U盘根目录,并改名为ldntldr，也就是把后缀给去掉。ntldr会在下面讲解。
+b、把“老九WinPE 老毛桃最终撒手不管版”解压，并把如下文件和文件夹复制到U盘根目录
+/MiniPE
+/WXPE
+WINNT.XPE
+把 /WXPE 中的两个文件剪切到U盘根目录，NTDETECT.COM不用动，SETUPLDR.BIN改名为ntldr
+又一次大功告成！
+
+最后U盘目录及文件如下
+/boot
+/boot/ldlinux.sys   （隐藏文件)
+/boot/syslinux.cfg
+/boot/vesamenu.c32
+/boot/peace.jpg
+/boot/reboot.c32
+/puppy          （同上，不再展开）
+/MINIPE
+/MINIPE/OP.WIM
+/MINIPE/WINPE.INI
+/MINIPE/WINPE.IS_
+/WXPE              (暂时为空，不要删除，启动PE的时候会用到)
+WINNT.XPE
+ldntldr
+ntldr
+
+
+三、由于本人有点完美倾向，所以想把所有的文件都放到一个目录里，也就是U盘根目录下只有一个/boot目录，其他的就可以放自己的文件了，这样看起来比较清晰，所以只好继续研究了^_^
+
+基本的思路还是按照上面讲解的来的，所以就省略一些东西，直接秀一下我的目录结构先
+/boot
+/boot/syslinux
+/boot/syslinux/ldlinux.sys
+/boot/syslinux/syslinux.cfg
+/boot/syslinux/vesamenu.c32
+/boot/syslinux/peace.jpg
+/boot/syslinux/reboot.c32
+/boot/boot.cat
+/boot/boot.msg
+/boot/initrd.gz
+/boot/isolinux.bin
+/boot/ldntldr
+/boot/ntd.com
+/boot/ntldr
+/boot/ntsf
+/boot/OP.WIM
+/boot/pup_400.sfs
+/boot/vmlinuz
+/boot/WINPE.INI
+/boot/WINPE.IS_
+/boot/zdrv_400.sfs
+
+其中syslinux.cfg配置如下
+default /boot/syslinux/vesamenu.c32
+MENU BACKGROUND /boot/syslinux/peace.jpg
+MENU TITLE MultiBoot By Jeff
+prompt 0
+timeout 90
+
+label puppy
+MENU LABEL Puppy USB Linux
+kernel /boot/vmlinuz
+append initrd=/boot/initrd.gz
+
+label winpe
+MENU LABEL WinPE Origin From Maotao
+kernel /boot/ldntldr
+append initrd=/boot/ntldr
+
+label reboot
+       MENU LABEL Reboot
+       kernel /boot/syslinux/reboot.c32
+
+ntd.com是由NTDETECT.COM改名而成。ntsf由WINNT.XPE改名而成。由于这两个文件改名而且从根目录移动到/boot目录，并且没有了MiniPE和WXPE目录，需要做一些工作。
+a、修改ntldr文件。需要UltraEdit或者WinHexSR，一般的记事本、写字板是不行的。我使用的WinHex v13.2SR，打开后第一个感觉就是头晕，没有认识的，全部是16进制的数字。没有关系，直接到下拉菜单点“搜索-->替换文本 ”（Ctrl+H），输入NTDETECT.COM并替换成boot/ntd.com，名字可以任意，但是一定要记住长度要一样，“/”也算一个字符，一 共搜索出4个，替换前2个就行了。然后再搜索winnt.xpe，全部替换成boot/ntsf，也是长度一样哦。最后搜索wxpe，全部替换成 boot。然后保存退出。
+b、修改WINPE.INI，把MINIPE替换成boot。
+c、修改ntsf。用记事本打开，修改成如下
+[SetupData]
+BootDevice="ramdisk(0)"
+BootPath="bootSYSTEM32"
+OsLoadOptions="/minint /fastdetect /rdexportascd /rdpath=bootWinPE.IS_"
+c、把WINPE.IS_复制到别的位置并改名为WINPE.CAB，然后解压缩后得到WINPE.ISO,用UltraISO打开，看起来就是一个光盘 的结果，该ISO根目录即为WXPE，改为boot。找到/boot/system32/pecmd.ini,提取出来该文件并修改，就是把所有的 MINIPE改为boot。然后把文件再导入WINPE.ISO保存。用Xcab软件压缩为WINPE.cab，改名为WINPE.IS_，复制到原位置 覆盖原来的文件即可。
+至此，整个工作就算结束了，重启试试吧！
+另外，本人用的是“老九WinPE 老毛桃最终撒手不管版”作为蓝本，由于PE版本不同，目录结构也不一样，所以基本上来说用别的PE就需要大家自己去探索了，不过基本的思想是不便的，变得只是目录结构而已和文件名而已。
+https://huifu.wondershare.cn/what-is-windows-pe-and-how-it-works.html

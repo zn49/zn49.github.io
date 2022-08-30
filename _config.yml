@@ -1,9 +1,9 @@
-title: no style, please! # name of the site
-author: Riccardo Graziosi # name of site's author
-email: riccardo.graziosi97@gmail.com # email of site's author
-url: https://riggraz.dev/no-style-please # root address of the site
+title: zn49 # name of the site
+author: zn49 # name of site's author
+email: '' # email of site's author
+url: https://zn49.github.io # root address of the site
 description: > # description of the site (multiple lines allowed)
-  A (nearly) no-CSS, fast, minimalist Jekyll theme.
+  a simple blog
 
 permalink: /:slug.html
 

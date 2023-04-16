@@ -3,6 +3,6 @@ layout: post
 title: About
 ---
 
-This is an example page!
-
-Actually, it has the same layout of a post...
+![](/static/order/2.png)
+![](/static/order/3.png)
+![](/static/order/4.png)

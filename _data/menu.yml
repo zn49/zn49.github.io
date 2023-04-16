@@ -2,8 +2,8 @@ entries:
   - title: Hello
     entries:
       - title: 欢迎光临!
-      - title: github repo
-        url: https://github.com/zn49/zn49.github.io
+      - title: 我的
+        url: https://zn49.github.io/about
 
   - title: 全部
     post_list:

@@ -3,6 +3,6 @@ layout: post
 title: About
 ---
 
-![](/static/order/2.png)
-![](/static/order/3.png)
-![](/static/order/4.png)
+![](/static/order/2.jpg)
+![](/static/order/3.jpg)
+![](/static/order/4.jpg)

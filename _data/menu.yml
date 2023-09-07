@@ -1,10 +1,4 @@
 entries:
-  - title: Hello
-    entries:
-      - title: 欢迎光临!
-      - title: 我的
-        url: https://zn49.github.io/about
-
   - title: 全部
     post_list:
       limit: 5

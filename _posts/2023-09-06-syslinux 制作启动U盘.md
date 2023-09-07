@@ -26,7 +26,6 @@ append initrd=/ntldr
 label reboot
        MENU LABEL Reboot
        kernel /boot/reboot.c32
-
 ```
 
 其中，ldntldr 是 grubutil 的一个工具，下载地址（http://download.gna.org/grubutil/）

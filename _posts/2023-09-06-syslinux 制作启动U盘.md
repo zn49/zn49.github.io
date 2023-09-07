@@ -5,6 +5,7 @@
 Syslinux 是一个 Linux 启动加载器, 用它制作启动 U 盘，具有很好的兼容性。
 如果直接将 PE 镜像刻录到 U 盘，无法正常启动的话，可以尝试一下 syslinux 的方式。
 1. 修改 syslinux.cf 文件
+
 ```
 default /boot/vesamenu.c32          到下载的syslinux安装包里去找，拷贝到这里就可以了
 MENU BACKGROUND /boot/peace.jpg     一个背景图片，大家自己随便找一个吧，640X480的
@@ -27,6 +28,7 @@ label reboot
        kernel /boot/reboot.c32
 
 ```
+
 其中，ldntldr 是 grubutil 的一个工具，下载地址（http://download.gna.org/grubutil/）
 解压后找到 ldntldr.bin，复制到U盘根目录,并改名为ldntldr。
 ntldr会在下面讲解。

@@ -7,18 +7,25 @@ Syslinux 是一个 Linux 启动加载器, 用它制作启动 U 盘，具有很�
 1. 修改 syslinux.cf 文件
 
 ```
-default /boot/vesamenu.c32          到下载的syslinux安装包里去找，拷贝到这里就可以了
-MENU BACKGROUND /boot/peace.jpg     一个背景图片，大家自己随便找一个吧，640X480的
-MENU TITLE MultiBoot By Jeff        标题而已，随便写吧
+#到下载的syslinux安装包里去找，拷贝到这里就可以了
+default /boot/vesamenu.c32          
+
+#一个背景图片，640X480的
+MENU BACKGROUND /boot/peace.jpg     
+
+#标题而已，随便写吧
+MENU TITLE MultiBoot By Jeff        
 prompt 0
 timeout 90
 
-label puppy                         上面的Puppy的启动项，这下可以双启动了
+#双启动
+label puppy                         
 MENU LABEL Puppy USB Linux
 kernel /puppy/vmlinuz
 append initrd=/puppy/initrd.gz
 
-label winpe                          关键是这里
+#关键是这里
+label winpe                          
 MENU LABEL WinPE Origin From Maotao
 kernel /ldntldr                   
 append initrd=/ntldr
@@ -30,20 +37,22 @@ label reboot
 
 其中，ldntldr 是 grubutil 的一个工具，下载地址（http://download.gna.org/grubutil/）
 解压后找到 ldntldr.bin，复制到U盘根目录,并改名为ldntldr。
-ntldr会在下面讲解。
 
 2. 把 WinPE (如：老毛桃) 解压，并把如下文件和文件夹复制到U盘根目录
-```angular2html
+
+```
 /MiniPE
 /WXPE
 WINNT.XPE
 ```
+
 把 /WXPE 中的两个文件剪切到U盘根目录，NTDETECT.COM不用动，SETUPLDR.BIN改名为ntldr。
 
 3. 其它方式
    
 把所有的文件都放到一个目录里，也就是 U 盘根目录下只有一个 /boot 目录。
-```angular2html
+
+```
 /boot
 /boot/syslinux
 /boot/syslinux/ldlinux.sys
@@ -67,9 +76,9 @@ WINNT.XPE
 /boot/zdrv_400.sfs
 ```
 
-syslinux.cfg配置如下
+syslinux.cfg 配置如下
 
-```angular2html
+```
 default /boot/syslinux/vesamenu.c32
 MENU BACKGROUND /boot/syslinux/peace.jpg
 MENU TITLE MultiBoot By Jeff
@@ -101,16 +110,17 @@ ntd.com是由NTDETECT.COM改名而成。ntsf由WINNT.XPE改名而成。
  然后再搜索winnt.xpe，全部替换成boot/ntsf，也是长度一样。最后搜索wxpe，全部替换成 boot。然后保存退出。
 * 修改WINPE.INI，把MINIPE替换成boot。
 * 修改ntsf。用记事本打开，修改成如下
-```angular2html
+
+```
 [SetupData]
 BootDevice="ramdisk(0)"
 BootPath="bootSYSTEM32"
 OsLoadOptions="/minint /fastdetect /rdexportascd /rdpath=bootWinPE.IS_"
 ```
 把 WINPE.IS_ 复制到别的位置并改名为 WINPE.CAB，然后解压缩后得到 WINPE.ISO, 用UltraISO打开，该ISO根目录即为WXPE，改为boot。
-找到/boot/system32/pecmd.ini,提取出来该文件并修改，就是把所有的 MINIPE 改为boot。
-然后把文件再导入WINPE.ISO保存。
-用Xcab软件压缩为WINPE.cab，改名为WINPE.IS_，复制到原位置 覆盖原来的文件即可。
+找到 /boot/system32/pecmd.ini,提取出来该文件并修改，就是把所有的 MINIPE 改为 boot。
+然后把文件再导入 WINPE.ISO 保存。
+用 Xcab 软件压缩为 WINPE.cab，改名为 WINPE.IS_，复制到原位置 覆盖原来的文件即可。
 
 
 参考：

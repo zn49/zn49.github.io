@@ -1,0 +1,27 @@
+<p>排序问题可以转化为找最大值或最小值的问题。以找最大值为例，整个无序数组中的最大值，必然是在升序数组的最右侧位置的，剩余数组的最大值也必然在剩余数组元素的最右侧，不断执行这个过程，最后就会将数组变为有序数组。</p>
+
+<p>冒泡排序，就是通过通过相邻元素比较、交换位置，来找到最值，并将其移动到数据一侧的。</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span> <span class="kt">int</span> <span class="nf">main</span><span class="p">(){</span>
+     <span class="kt">int</span> <span class="n">arr</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span> <span class="mi">98</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="p">};</span>
+     <span class="kt">int</span> <span class="n">flag</span><span class="p">;</span>
+     <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">){</span>
+	<span class="n">flag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+         <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">){</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]){</span>
+                <span class="kt">int</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+                <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
+                <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
+		<span class="n">flag</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="p">}</span>
+         <span class="p">}</span>
+	<span class="k">if</span><span class="p">(</span><span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">break</span><span class="p">;</span>
+	<span class="p">}</span>
+     <span class="p">}</span>
+     <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span> <span class="n">k</span><span class="o">++</span><span class="p">){</span>
+         <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">arr</span><span class="p">[</span><span class="n">k</span><span class="p">]);</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+</code></pre></div></div>

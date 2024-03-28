@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2024-03-27T22:52:57+08:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">zn49</title><subtitle>a simple blog
+</subtitle><author><name>zn49</name></author><entry><title type="html">Syslinux 制作启动u盘</title><link href="http://localhost:4000/2023/09/06/syslinux-%E5%88%B6%E4%BD%9C%E5%90%AF%E5%8A%A8U%E7%9B%98.html" rel="alternate" type="text/html" title="Syslinux 制作启动u盘" /><published>2023-09-06T00:00:00+08:00</published><updated>2023-09-06T00:00:00+08:00</updated><id>http://localhost:4000/2023/09/06/syslinux%20%E5%88%B6%E4%BD%9C%E5%90%AF%E5%8A%A8U%E7%9B%98</id><content type="html" xml:base="http://localhost:4000/2023/09/06/syslinux-%E5%88%B6%E4%BD%9C%E5%90%AF%E5%8A%A8U%E7%9B%98.html"><![CDATA[<p>Syslinux 是一个 Linux 启动加载器, 用它制作启动 U 盘，具有很好的兼容性。
+如果直接将 PE 镜像刻录到 U 盘，无法正常启动的话，可以尝试一下 syslinux 的方式。</p>
+<ol>
+  <li>修改 syslinux.cf 文件</li>
+</ol>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="c">#到下载的syslinux安装包里去找，拷贝到这里就可以了</span>
+  default /boot/vesamenu.c32          
+
+  <span class="c">#一个背景图片，640X480的</span>
+  MENU BACKGROUND /boot/peace.jpg     
+
+  <span class="c">#标题而已，随便写吧</span>
+  MENU TITLE MultiBoot By Jeff        
+  prompt 0
+  <span class="nb">timeout </span>90
+
+  <span class="c">#双启动</span>
+  label puppy                         
+  MENU LABEL Puppy USB Linux
+  kernel /puppy/vmlinuz
+  append <span class="nv">initrd</span><span class="o">=</span>/puppy/initrd.gz
+
+  <span class="c">#关键是这里</span>
+  label winpe                          
+  MENU LABEL WinPE Origin From Maotao
+  kernel /ldntldr                   
+  append <span class="nv">initrd</span><span class="o">=</span>/ntldr
+
+  label reboot
+         MENU LABEL Reboot
+         kernel /boot/reboot.c32
+</code></pre></div></div>
+
+<p>其中，ldntldr 是 grubutil 的一个工具，下载地址（http://download.gna.org/grubutil/）
+  解压后找到 ldntldr.bin，复制到U盘根目录,并改名为ldntldr。</p>
+
+<ol>
+  <li>把 WinPE (如：老毛桃) 解压，并把如下文件和文件夹复制到U盘根目录</li>
+</ol>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/MiniPE
+/WXPE
+WINNT.XPE
+</code></pre></div></div>
+
+<p>把 /WXPE 中的两个文件剪切到U盘根目录，NTDETECT.COM不用动，SETUPLDR.BIN改名为ntldr。</p>
+
+<ol>
+  <li>其它方式</li>
+</ol>
+
+<p>把所有的文件都放到一个目录里，也就是 U 盘根目录下只有一个 /boot 目录。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/boot
+/boot/syslinux
+/boot/syslinux/ldlinux.sys
+/boot/syslinux/syslinux.cfg
+/boot/syslinux/vesamenu.c32
+/boot/syslinux/peace.jpg
+/boot/syslinux/reboot.c32
+/boot/boot.cat
+/boot/boot.msg
+/boot/initrd.gz
+/boot/isolinux.bin
+/boot/ldntldr
+/boot/ntd.com
+/boot/ntldr
+/boot/ntsf
+/boot/OP.WIM
+/boot/pup_400.sfs
+/boot/vmlinuz
+/boot/WINPE.INI
+/boot/WINPE.IS_
+/boot/zdrv_400.sfs
+</code></pre></div></div>
+
+<p>syslinux.cfg 配置如下</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>default /boot/syslinux/vesamenu.c32
+MENU BACKGROUND /boot/syslinux/peace.jpg
+MENU TITLE MultiBoot By Jeff
+prompt 0
+timeout 90
+
+label puppy
+MENU LABEL Puppy USB Linux
+kernel /boot/vmlinuz
+append initrd=/boot/initrd.gz
+
+label winpe
+MENU LABEL WinPE Origin From Maotao
+kernel /boot/ldntldr
+append initrd=/boot/ntldr
+
+label reboot
+       MENU LABEL Reboot
+       kernel /boot/syslinux/reboot.c32
+</code></pre></div></div>
+
+<p>ntd.com是由NTDETECT.COM改名而成。ntsf由WINNT.XPE改名而成。</p>
+
+<p>由于这两个文件改名后从根目录移动到 /boot 目录，并且没有了MiniPE和WXPE目录，需要做一些改动。</p>
+
+<ul>
+  <li>
+    <p>修改ntldr文件。</p>
+
+    <p>用 UltraEdit 或者 WinHexSR 打开，直接到下拉菜单点“搜索–&gt;替换文本 ”（Ctrl+H），输入NTDETECT.COM并替换成boot/ntd.com，名字可以任意，但是一定要记住长度要一样，“/”也算一个字符，一 共搜索出4个，替换前2个就行了。
+然后再搜索winnt.xpe，全部替换成boot/ntsf，也是长度一样。最后搜索wxpe，全部替换成 boot。然后保存退出。</p>
+  </li>
+  <li>修改WINPE.INI，把MINIPE替换成boot。</li>
+  <li>
+    <p>修改ntsf用记事本打开，修改成如下</p>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[SetupData]
+BootDevice="ramdisk(0)"
+BootPath="bootSYSTEM32"
+OsLoadOptions="/minint /fastdetect /rdexportascd /rdpath=bootWinPE.IS_"
+</code></pre></div>    </div>
+    <p>把 WINPE.IS_ 复制到别的位置并改名为 WINPE.CAB，然后解压缩后得到 WINPE.ISO, 
+用UltraISO打开，该ISO根目录即为WXPE，改为boot。
+找到 /boot/system32/pecmd.ini,提取出来该文件并修改，就是把所有的 MINIPE 改为 boot。
+然后把文件再导入 WINPE.ISO 保存。</p>
+  </li>
+</ul>
+
+<p>用 Xcab 软件压缩为 WINPE.cab，改名为 WINPE.IS_，复制到原位置 覆盖原来的文件即可。</p>
+
+<p>参考：</p>
+
+<p>https://wiki.syslinux.org/wiki/index.php?title=SYSLINUX</p>
+
+<p>https://wiki.archlinuxcn.org/wiki/Syslinux</p>
+
+<p>https://huifu.wondershare.cn/what-is-windows-pe-and-how-it-works.html</p>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[Syslinux 是一个 Linux 启动加载器, 用它制作启动 U 盘，具有很好的兼容性。 如果直接将 PE 镜像刻录到 U 盘，无法正常启动的话，可以尝试一下 syslinux 的方式。 修改 syslinux.cf 文件]]></summary></entry><entry><title type="html">Ubuntu 16.04 配置ftp服务</title><link href="http://localhost:4000/2022/11/28/Ubuntu-16.04-%E9%85%8D%E7%BD%AEftp%E6%9C%8D%E5%8A%A1.html" rel="alternate" type="text/html" title="Ubuntu 16.04 配置ftp服务" /><published>2022-11-28T00:00:00+08:00</published><updated>2022-11-28T00:00:00+08:00</updated><id>http://localhost:4000/2022/11/28/Ubuntu-16.04-%E9%85%8D%E7%BD%AEftp%E6%9C%8D%E5%8A%A1</id><content type="html" xml:base="http://localhost:4000/2022/11/28/Ubuntu-16.04-%E9%85%8D%E7%BD%AEftp%E6%9C%8D%E5%8A%A1.html"><![CDATA[<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt update
+apt <span class="nb">install </span>vsftpd
+<span class="nb">cp</span> /etc/vsftpd.conf  /etc/vsftpd.conf_default
+
+vi /etc/vsftpd.conf
+<span class="nv">listen</span><span class="o">=</span>YES
+<span class="nv">anonymous_enable</span><span class="o">=</span>NO
+<span class="nv">local_enable</span><span class="o">=</span>YES
+<span class="nv">write_enable</span><span class="o">=</span>YES
+<span class="nv">chroot_local_user</span><span class="o">=</span>YES
+<span class="nv">local_umask</span><span class="o">=</span>000 <span class="c">#上传后权限为777</span>
+<span class="nv">force_dot_files</span><span class="o">=</span>YES
+<span class="nv">utf8_filesystem</span><span class="o">=</span>YES
+<span class="nv">allow_writeable_chroot</span><span class="o">=</span>YES
+<span class="nv">dirmessage_enable</span><span class="o">=</span>YES
+<span class="nv">use_localtime</span><span class="o">=</span>YES
+<span class="nv">xferlog_enable</span><span class="o">=</span>YES
+<span class="nv">connect_from_port_20</span><span class="o">=</span>YES
+<span class="nv">secure_chroot_dir</span><span class="o">=</span>/var/run/vsftpd/empty
+<span class="nv">pam_service_name</span><span class="o">=</span>vsftpd
+
+<span class="nb">echo</span> <span class="s2">"/usr/sbin/nologin"</span> <span class="o">&gt;&gt;</span> /etc/shells
+
+useradd shangchuan <span class="nt">--shell</span> /usr/sbin/nologin <span class="nt">--home-dir</span> /path_to_directory
+passwd shangchuan
+
+或者
+
+useradd user_name <span class="nt">-o</span> <span class="nt">-u</span> UID_client <span class="nt">-g</span> GID_client <span class="nt">--shell</span> /usr/sbin/nologin <span class="nt">--home-dir</span> /path_to_directory
+passwd user_name
+<span class="nb">id </span>user_name
+
+</code></pre></div></div>
+
+<p>将用户加入附加组</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>usermod -a -G www-data shangchuan
+</code></pre></div></div>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[```shell apt update apt install vsftpd cp /etc/vsftpd.conf /etc/vsftpd.conf_default]]></summary></entry><entry><title type="html">Finding Child Nodes In Php</title><link href="http://localhost:4000/2022/11/23/Finding-child-nodes-in-php.html" rel="alternate" type="text/html" title="Finding Child Nodes In Php" /><published>2022-11-23T00:00:00+08:00</published><updated>2022-11-23T00:00:00+08:00</updated><id>http://localhost:4000/2022/11/23/Finding-child-nodes-in-php</id><content type="html" xml:base="http://localhost:4000/2022/11/23/Finding-child-nodes-in-php.html"><![CDATA[<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">get_descendants</span><span class="p">(</span><span class="nv">$nodes</span><span class="p">,</span> <span class="nv">$id</span><span class="p">){</span>
+   <span class="nv">$flag</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+   <span class="nv">$child_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="nv">$id</span><span class="p">];</span>
+   <span class="k">while</span> <span class="p">(</span><span class="nv">$flag</span><span class="p">)</span> <span class="p">{</span>
+       <span class="nv">$flag</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+       <span class="k">foreach</span> <span class="p">(</span><span class="nv">$nodes</span> <span class="k">as</span> <span class="nv">$key</span> <span class="o">=&gt;</span> <span class="nv">$node</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span><span class="nb">in_array</span><span class="p">(</span><span class="nv">$node</span><span class="p">[</span><span class="s1">'pid'</span><span class="p">],</span> <span class="nv">$child_nodes</span><span class="p">))</span>  <span class="p">{</span>
+              <span class="nv">$child_nodes</span><span class="p">[]</span> <span class="o">=</span> <span class="nv">$node</span><span class="p">[</span><span class="s1">'id'</span><span class="p">];</span>
+              <span class="k">unset</span><span class="p">(</span><span class="nv">$nodes</span><span class="p">[</span><span class="nv">$key</span><span class="p">]);</span>
+              <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$flag</span><span class="p">)</span> <span class="nv">$flag</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+          <span class="p">}</span>
+       <span class="p">}</span>
+   <span class="p">}</span>
+   <span class="nb">array_shift</span><span class="p">(</span><span class="nv">$child_nodes</span><span class="p">);</span>
+   <span class="k">return</span>  <span class="nv">$child_nodes</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nv">$nodes</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">3</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">4</span><span class="p">],</span>
+<span class="p">];</span>
+<span class="nf">get_descendants</span><span class="p">(</span><span class="nv">$nodes</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+
+</code></pre></div></div>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[```php function get_descendants($nodes, $id){ $flag = true; $child_nodes = [$id]; while ($flag) { $flag = false; foreach ($nodes as $key =&gt; $node) { if (in_array($node[‘pid’], $child_nodes)) { $child_nodes[] = $node[‘id’]; unset($nodes[$key]); if (!$flag) $flag = true; } } } array_shift($child_nodes); return $child_nodes; } $nodes = [ [‘id’ =&gt; 1, ‘pid’ =&gt; 0], [‘id’ =&gt; 2, ‘pid’ =&gt; 1], [‘id’ =&gt; 3, ‘pid’ =&gt; 1], [‘id’ =&gt; 4, ‘pid’ =&gt; 3], [‘id’ =&gt; 5, ‘pid’ =&gt; 4], ]; get_descendants($nodes, 3);]]></summary></entry><entry><title type="html">选择排序</title><link href="http://localhost:4000/2022/11/22/%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F.html" rel="alternate" type="text/html" title="选择排序" /><published>2022-11-22T00:00:00+08:00</published><updated>2022-11-22T00:00:00+08:00</updated><id>http://localhost:4000/2022/11/22/%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F</id><content type="html" xml:base="http://localhost:4000/2022/11/22/%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F.html"><![CDATA[<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">(){</span>
+    <span class="kt">int</span> <span class="n">arr</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">23</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">74</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">73</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">9</span><span class="p">};</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+        <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+        <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span> <span class="n">j</span><span class="o">++</span><span class="p">){</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">arr</span><span class="p">[</span><span class="n">index</span><span class="p">]){</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+            <span class="p">}</span>      
+        <span class="p">}</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">index</span> <span class="o">!=</span> <span class="n">i</span><span class="p">){</span>
+            <span class="kt">int</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+            <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+            <span class="n">arr</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[#include &lt;stdio.h&gt; int main(){ int arr[] = {23, 45, 80, 74, 13, 55, 73, 45, 3, 9}; for(int i = 0; i &lt; sizeof(arr) / sizeof(arr[0]) - 1; i++){ int index = i; for(int j = i; j &lt; sizeof(arr) / sizeof(arr[0]); j++){ if(arr[j+1] &lt; arr[index]){ index = j+1; } } if(index != i){ int tmp = arr[i]; arr[i] = arr[index]; arr[index] = tmp; } } for(int i = 0; i &lt; sizeof(arr) / sizeof(arr[0]); i++){ printf("%d\n", arr[i]); } return 0; }]]></summary></entry><entry><title type="html">冒泡排序</title><link href="http://localhost:4000/2022/11/21/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F.html" rel="alternate" type="text/html" title="冒泡排序" /><published>2022-11-21T00:00:00+08:00</published><updated>2022-11-21T00:00:00+08:00</updated><id>http://localhost:4000/2022/11/21/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F</id><content type="html" xml:base="http://localhost:4000/2022/11/21/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F.html"><![CDATA[<p>排序问题可以转化为找最大值或最小值的问题。以找最大值为例，整个无序数组中的最大值，必然是在升序数组的最右侧位置的，剩余数组的最大值也必然在剩余数组元素的最右侧，不断执行这个过程，最后就会将数组变为有序数组。</p>
+
+<p>冒泡排序，就是通过通过相邻元素比较、交换位置，来找到最值，并将其移动到数据一侧的。</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span> <span class="kt">int</span> <span class="nf">main</span><span class="p">(){</span>
+     <span class="kt">int</span> <span class="n">arr</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span> <span class="mi">98</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="p">};</span>
+     <span class="kt">int</span> <span class="n">flag</span><span class="p">;</span>
+     <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">){</span>
+	<span class="n">flag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+         <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">){</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]){</span>
+                <span class="kt">int</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+                <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
+                <span class="n">arr</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
+		<span class="n">flag</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="p">}</span>
+         <span class="p">}</span>
+	<span class="k">if</span><span class="p">(</span><span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">break</span><span class="p">;</span>
+	<span class="p">}</span>
+     <span class="p">}</span>
+     <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span> <span class="n">k</span><span class="o">++</span><span class="p">){</span>
+         <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">arr</span><span class="p">[</span><span class="n">k</span><span class="p">]);</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+</code></pre></div></div>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[排序问题可以转化为找最大值或最小值的问题。以找最大值为例，整个无序数组中的最大值，必然是在升序数组的最右侧位置的，剩余数组的最大值也必然在剩余数组元素的最右侧，不断执行这个过程，最后就会将数组变为有序数组。]]></summary></entry><entry><title type="html">输出菱形</title><link href="http://localhost:4000/2022/11/20/%E8%BE%93%E5%87%BA%E8%8F%B1%E5%BD%A2.html" rel="alternate" type="text/html" title="输出菱形" /><published>2022-11-20T00:00:00+08:00</published><updated>2022-11-20T00:00:00+08:00</updated><id>http://localhost:4000/2022/11/20/%E8%BE%93%E5%87%BA%E8%8F%B1%E5%BD%A2</id><content type="html" xml:base="http://localhost:4000/2022/11/20/%E8%BE%93%E5%87%BA%E8%8F%B1%E5%BD%A2.html"><![CDATA[<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span>
+ <span class="kt">int</span> <span class="nf">main</span><span class="p">(){</span>
+     <span class="kt">int</span> <span class="n">max</span> <span class="o">=</span> <span class="mi">9</span><span class="p">;</span>
+     <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">max</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+         <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+         <span class="k">if</span><span class="p">(</span><span class="n">j</span> <span class="o">&gt;</span> <span class="n">max</span><span class="p">){</span>
+             <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">max</span> <span class="o">-</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span>
+         <span class="p">}</span>
+         <span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">max</span> <span class="o">-</span> <span class="n">j</span><span class="p">)</span>  <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+         <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">;</span> <span class="n">z</span><span class="o">++</span><span class="p">){</span>
+             <span class="n">printf</span><span class="p">(</span><span class="s">" "</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">;</span> <span class="n">z</span><span class="o">++</span> <span class="p">){</span>
+             <span class="n">printf</span><span class="p">(</span><span class="s">"*"</span><span class="p">);</span>
+         <span class="p">}</span>
+         <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+     <span class="p">}</span>
+     <span class="k">return</span>  <span class="mi">0</span><span class="p">;</span>
+ <span class="p">}</span>
+</code></pre></div></div>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[```c #include]]></summary></entry><entry><title type="html">Windows10镜像校验值</title><link href="http://localhost:4000/2022/10/04/windows10%E9%95%9C%E5%83%8F%E6%A0%A1%E9%AA%8C%E5%80%BC.html" rel="alternate" type="text/html" title="Windows10镜像校验值" /><published>2022-10-04T00:00:00+08:00</published><updated>2022-10-04T00:00:00+08:00</updated><id>http://localhost:4000/2022/10/04/windows10%E9%95%9C%E5%83%8F%E6%A0%A1%E9%AA%8C%E5%80%BC</id><content type="html" xml:base="http://localhost:4000/2022/10/04/windows10%E9%95%9C%E5%83%8F%E6%A0%A1%E9%AA%8C%E5%80%BC.html"><![CDATA[<p><strong>cn_windows_10_enterprise_ltsc_2019_x86_dvd_1814dbab.iso</strong><br />
+3,196,803,072<br />
+BA2169EDD94F123211CD4AACA68352F1AB6195D9
+4F659D9D347BC375706FA22377F183097F1D7AED28EFDF7E109AE8E8E7D2407718CB3A6CEF0FB27C7CBFEBC7EEDD883071004E1A5F3DC88F0BC90594EB9B13A4</p>
+
+<p><strong>cn_windows_10_enterprise_ltsc_2019_x64_dvd_9c09ff24.iso</strong><br />
+4,478,906,368<br />
+24B59706D5EDED392423936C82BA5A83596B50CC
+FEA7A9019A1884D0BBDC274662E1899800CB11ABE71B1AD4CDF4B333C785FF65E4A8CA8C62215A1CBFB8EC5B873520349EEB449652D13742C9FC1A1F26BE895A</p>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[cn_windows_10_enterprise_ltsc_2019_x86_dvd_1814dbab.iso 3,196,803,072 BA2169EDD94F123211CD4AACA68352F1AB6195D9 4F659D9D347BC375706FA22377F183097F1D7AED28EFDF7E109AE8E8E7D2407718CB3A6CEF0FB27C7CBFEBC7EEDD883071004E1A5F3DC88F0BC90594EB9B13A4]]></summary></entry><entry><title type="html">使用正则调试功能学习正则表达式</title><link href="http://localhost:4000/2022/09/21/%E4%BD%BF%E7%94%A8%E6%AD%A3%E5%88%99%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD%E5%AD%A6%E4%B9%A0%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F.html" rel="alternate" type="text/html" title="使用正则调试功能学习正则表达式" /><published>2022-09-21T00:00:00+08:00</published><updated>2022-09-21T00:00:00+08:00</updated><id>http://localhost:4000/2022/09/21/%E4%BD%BF%E7%94%A8%E6%AD%A3%E5%88%99%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD%E5%AD%A6%E4%B9%A0%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F</id><content type="html" xml:base="http://localhost:4000/2022/09/21/%E4%BD%BF%E7%94%A8%E6%AD%A3%E5%88%99%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD%E5%AD%A6%E4%B9%A0%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F.html"><![CDATA[<p>regex101 的正则调试功能，可以以一种非常直观的方式了解正则匹配的具体过程和原理，个人觉得对深入学习正则表达式非常有帮助。</p>
+
+<ul>
+  <li>
+    <p>打开 https://regex101.com/。</p>
+  </li>
+  <li>
+    <p>该网站默认语言为英文，可以在设置改为中文。</p>
+  </li>
+</ul>
+
+<p><img src="/static/regex101_setting.png" alt="regex101_setting" /></p>
+
+<ul>
+  <li>在“正则编辑器”页面，将“语言风格”设置为 PCRE 或者 PCRE2。</li>
+</ul>
+
+<p><img src="/static/regex101_style.jpg" alt="regex101_setting" style="zoom:50%;" /></p>
+
+<ul>
+  <li>输入正则表达式与测试文本后，点击“正则调试”菜单。</li>
+</ul>
+
+<p><img src="/static/regex101_debug.jpg" alt="regex101_setting" style="zoom:50%;" /></p>
+
+<ul>
+  <li>在调试窗口通过鼠标或左右方向键，可逐步查看正则匹配具体过程。</li>
+</ul>
+
+<p><img src="/static/regex101_debug_window.jpg" alt="regex101_setting" style="zoom:50%;" /></p>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[regex101 调试正则表达式]]></summary></entry><entry><title type="html">英语口语测试题</title><link href="http://localhost:4000/2022/09/07/%E8%8B%B1%E8%AF%AD%E5%8F%A3%E8%AF%AD%E6%B5%8B%E8%AF%95%E9%A2%98.html" rel="alternate" type="text/html" title="英语口语测试题" /><published>2022-09-07T00:00:00+08:00</published><updated>2022-09-07T00:00:00+08:00</updated><id>http://localhost:4000/2022/09/07/%E8%8B%B1%E8%AF%AD%E5%8F%A3%E8%AF%AD%E6%B5%8B%E8%AF%95%E9%A2%98</id><content type="html" xml:base="http://localhost:4000/2022/09/07/%E8%8B%B1%E8%AF%AD%E5%8F%A3%E8%AF%AD%E6%B5%8B%E8%AF%95%E9%A2%98.html"><![CDATA[<h2 id="part-i-read-a-passage-20-points">Part I Read a Passage (20 points)</h2>
+<p><strong>Please read the following passage within three minutes.</strong></p>
+
+<blockquote>
+  <center>Plan your life</center>
+
+  <p>   Making a life plan can help you feel more in control of your life and give you a clear path toward the things you want.
+   It can start with creating a document to record your thoughts and ideas. And make sure that the document should be easily seen so that you will remember to review it often. 
+   You can use the following guide to help you.</p>
+  <ol>
+    <li>Allow yourself to dream big. Imagine what an average day in your ideal life looks like. Imagine the kind of person you want to be and how you want others to see you.</li>
+    <li>Clearly define what success means to you.</li>
+    <li>Identify your strengths and weaknesses.</li>
+    <li>Practice self-reflection to clarify your roles and satisfaction in different areas of life. For example, your role as a parent or a manager may be more important to you than your role as an employee or student. Another example, your health and family may be more important than your work or hobbies. 
+Follow the above guide, and may you have a better life.</li>
+  </ol>
+</blockquote>
+
+<h2 id="part-ii-answer-questions-6-points530-points">Part II Answer Questions (6 points×5=30 points)</h2>
+<p><strong>There are five questions in this part. After each question you will have one minute to give your answer.</strong></p>
+
+<blockquote>
+  <ol>
+    <li>Which is your favorite room in your home? Why you love it so much?</li>
+    <li>Describe a famous person you know and tell why he/she is famous.</li>
+    <li>Which is your favorite gift? Why you love it?</li>
+    <li>What is the most interesting part of your hometown?</li>
+    <li>What kind of job you want to do most? Why?</li>
+  </ol>
+</blockquote>
+
+<h2 id="part-iii-talk-about-a-topic-50-points">Part III Talk About a Topic (50 points)</h2>
+<p><strong>In this part you will be given three minutes to think about the topic. Then you will be given five minutes to talk about it.</strong></p>
+<blockquote>
+  <center>The advantages and disadvantages of your present job/life</center>
+</blockquote>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[2022上半年 河北 00594]]></summary></entry><entry><title type="html">英语听力测试题</title><link href="http://localhost:4000/2022/09/07/%E8%8B%B1%E8%AF%AD%E5%90%AC%E5%8A%9B%E6%B5%8B%E8%AF%95%E9%A2%98.html" rel="alternate" type="text/html" title="英语听力测试题" /><published>2022-09-07T00:00:00+08:00</published><updated>2022-09-07T00:00:00+08:00</updated><id>http://localhost:4000/2022/09/07/%E8%8B%B1%E8%AF%AD%E5%90%AC%E5%8A%9B%E6%B5%8B%E8%AF%95%E9%A2%98</id><content type="html" xml:base="http://localhost:4000/2022/09/07/%E8%8B%B1%E8%AF%AD%E5%90%AC%E5%8A%9B%E6%B5%8B%E8%AF%95%E9%A2%98.html"><![CDATA[<p>​<audio id="audio" controls="" preload="none">
+      <source id="mp3" src="/static/2022.mp3" />
+</audio></p>
+
+<hr />
+<div align="center"> <font size="70">Listening Test</font> </div>
+<p><strong>  There are three parts in this test. Part one, multiple choices. Part two, true or false statements. Part three, spot dictation. Now let’s begin the test.</strong></p>
+
+<p><strong>I. Multiple choices. (2×10)
+In this part, you will hear 10 short conversations. At the end of each conversation, a question will be asked about what was said. The conversation will be spoken only once. After each question there will be a pause. During the pause, you must read the three choices marked A, B and C and decide which is the best answer.</strong></p>
+
+<ol>
+  <li>Why is the woman’s father going to retire?
+A. He is old.			 B. He is in good health.		C. He is in poor health.</li>
+  <li>Where does the man think the keys are?
+A. In the woman’s car.	 B. In the restaurant.			C. In the woman’s house</li>
+  <li>What does the woman mean in this conversation?
+A. She likes looking at the calendar.
+B. She takes business trips very often.
+C. She likes being on trips.</li>
+  <li>Why did the woman thank the man?
+A. Because he sent her to the hospital.
+B. Because he sent her some flowers.
+C. Because he never forgot to meet her.</li>
+  <li>Where does the conversation take place?
+A. In the street.		B. In a shop.					C. In a restaurant.</li>
+  <li>How many days will the woman be traveling?
+A. Ten days.			B. Eight days.				C. Fifteen days.</li>
+  <li>What did the boy’s father give him as a birthday gift?
+A. A CD player.		B. An MP3 player.			C. A pair of shoes.</li>
+  <li>What examination is Emily going to take?
+A. Tennis final.		B. English final.				C. English mid-term exam.</li>
+  <li>What is the man going to do with the money he won?
+A. He is going to buy a lot of expensive things.
+B. He is going to buy a new car.
+C. He is going to make much more money with it.</li>
+  <li>Why is Frank so sad about his future planning?
+A. Because he wants to be singer but he cannot.
+B. Because he won’t be able to live in Milan.
+C. Because he is afraid that he cannot pass the examination.</li>
+</ol>
+
+<p><strong>II. True or False. (2×10)
+Listen to two passages and decide whether the following 10 statements are true or false. Both the passages will be read only once. Write T for True and F for False.</strong></p>
+
+<p><strong>Passage 1</strong></p>
+<ol>
+  <li>The speaker met Susan at a dance party.</li>
+  <li>Both the speaker and Susan want to get married now.</li>
+  <li>The speaker’s parents don’t like her very much.</li>
+  <li>The speaker is 24 years old now.</li>
+  <li>The speaker hopes to start his own business.</li>
+</ol>
+
+<p><strong>Passage 2</strong></p>
+<ol>
+  <li>The speaker has three brothers, no sisters.</li>
+  <li>They make bread and cakes and deliver them to shops.</li>
+  <li>The speaker’s dad died 2 years ago.</li>
+  <li>The mother only started to run the business after the father’s death.</li>
+  <li>The speaker’s older brother George was helping with the business.</li>
+</ol>
+
+<p><strong>III. Spot dictation (2×30)
+In this part, you will hear two passages. Both the passages will be read two times. Listen and write the missing words on the lines.</strong></p>
+
+<p><strong>Passage 1</strong>
+Stan Murch, in a uniform-like blue jacket, stood on the 21 <strong>__</strong><strong>__ in front of the Hilton and watched cab after cab make the loop into the 22</strong><strong>__</strong>__ entrance. Doesn’t anybody travel in their own car anymore? 
+Then at last a Chrysler Imperial with Michigan plates came 23 <strong>__</strong><strong>__ up Sixth Avenue, made the left-hand loop into the Hilton 24 __</strong><strong>__</strong> and stopped at the entrance. As a woman and several children got out of the doors on the 25 <strong>__</strong><strong>__ of the car, toward the hotel entrance, the driver climbed 26</strong><strong>__</strong>__ out on the left. He was a big man with a cigar and a camel’s-hair 27<strong>__</strong><strong>__. 
+Murch was at the door before it was 28 __</strong><strong>__ open, pulling it the rest of the way and saying, “Just leave the 29</strong><strong>__</strong> in, sir.”
+“Right,” the man said around his cigar. He got out and sort of 30<strong>__</strong>__ himself inside the coat. Then, as Murch was about to get 31 <strong>__</strong><strong>__ the wheel, the driver said, “Wait.”
+Murch looked at him, “Sir?”
+“Here you go, boy,” the man said and pulled a 32 __</strong><strong>__</strong> dollar bill from his pants pocket and handed it across.
+“Thank you, sir,” Murch said. He 33 <strong>__</strong>__ with a hand holding the dollar, climbed behind the wheel and 34 <strong>__</strong><strong>__ away.
+He was smiling as he made the right turn into 53rd Street; it wasn’t every day a man gave you a tip for 35 __</strong><em>__</em> his car.</p>
+
+<p><strong>Passage 2</strong>
+A beautiful woman and a man were involved in a car 36 <strong>__</strong><strong>__. Both of their cars were badly 37 __</strong><strong>__</strong><em>, but neither of them were hurt.
+    After they came out of their cars, the woman said, “So you’re a man. That’s 38 <strong>__</strong></em><strong>__<em>. I’ m a woman. Wow, just look at our cars! But we’re 39 __</em></strong><strong>__<em>. This must be a sign from God that we should meet and be 40 __</em></strong><strong>___ and live together in 41 __</strong><strong>__</strong> for the rest of our days.”
+    “Please,” the man replied,” Oh yes, I agree with you 42<strong>__</strong><strong>__<em>! This must be a sign from God!” The woman continued, “and look at this, here’s another 43 __</em></strong><strong>__<em>. My car is seriously damaged but this bottle of wine hasn’t 44 __</em></strong><strong>__<em>. Surely God wants us to drink this wine and 45 __</em></strong><strong>___ our good luck”. Then she handed the bottle to the man.
+The man 46 __</strong><strong>__</strong> his head, opened it and drank 47 <strong>__</strong><strong>__ the bottle and then handed it back to the woman. The woman took the bottle and 48 __</strong><strong>__</strong>_ put the cap back on, and handed it back to the man.
+    The man asked, “Aren’t you having 49 <strong>__</strong><strong>__?” The woman replied, “No, I think I’ll just wait for the 50 __</strong><strong>__</strong>_ to come…</p>]]></content><author><name>zn49</name></author><summary type="html"><![CDATA[2022上半年 河北 00593]]></summary></entry></feed>

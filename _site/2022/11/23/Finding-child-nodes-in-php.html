@@ -1,0 +1,26 @@
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span> <span class="n">get_descendants</span><span class="p">(</span><span class="nv">$nodes</span><span class="p">,</span> <span class="nv">$id</span><span class="p">){</span>
+   <span class="nv">$flag</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+   <span class="nv">$child_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="nv">$id</span><span class="p">];</span>
+   <span class="k">while</span> <span class="p">(</span><span class="nv">$flag</span><span class="p">)</span> <span class="p">{</span>
+       <span class="nv">$flag</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+       <span class="k">foreach</span> <span class="p">(</span><span class="nv">$nodes</span> <span class="k">as</span> <span class="nv">$key</span> <span class="o">=&gt;</span> <span class="nv">$node</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span><span class="nb">in_array</span><span class="p">(</span><span class="nv">$node</span><span class="p">[</span><span class="s1">'pid'</span><span class="p">],</span> <span class="nv">$child_nodes</span><span class="p">))</span>  <span class="p">{</span>
+              <span class="nv">$child_nodes</span><span class="p">[]</span> <span class="o">=</span> <span class="nv">$node</span><span class="p">[</span><span class="s1">'id'</span><span class="p">];</span>
+              <span class="k">unset</span><span class="p">(</span><span class="nv">$nodes</span><span class="p">[</span><span class="nv">$key</span><span class="p">]);</span>
+              <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$flag</span><span class="p">)</span> <span class="nv">$flag</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+          <span class="p">}</span>
+       <span class="p">}</span>
+   <span class="p">}</span>
+   <span class="nb">array_shift</span><span class="p">(</span><span class="nv">$child_nodes</span><span class="p">);</span>
+   <span class="k">return</span>  <span class="nv">$child_nodes</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nv">$nodes</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">3</span><span class="p">],</span>
+    <span class="p">[</span><span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">'pid'</span> <span class="o">=&gt;</span> <span class="mi">4</span><span class="p">],</span>
+<span class="p">];</span>
+<span class="nf">get_descendants</span><span class="p">(</span><span class="nv">$nodes</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+
+</code></pre></div></div>

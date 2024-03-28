@@ -1,0 +1,38 @@
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt update
+apt <span class="nb">install </span>vsftpd
+<span class="nb">cp</span> /etc/vsftpd.conf  /etc/vsftpd.conf_default
+
+vi /etc/vsftpd.conf
+<span class="nv">listen</span><span class="o">=</span>YES
+<span class="nv">anonymous_enable</span><span class="o">=</span>NO
+<span class="nv">local_enable</span><span class="o">=</span>YES
+<span class="nv">write_enable</span><span class="o">=</span>YES
+<span class="nv">chroot_local_user</span><span class="o">=</span>YES
+<span class="nv">local_umask</span><span class="o">=</span>000 <span class="c">#上传后权限为777</span>
+<span class="nv">force_dot_files</span><span class="o">=</span>YES
+<span class="nv">utf8_filesystem</span><span class="o">=</span>YES
+<span class="nv">allow_writeable_chroot</span><span class="o">=</span>YES
+<span class="nv">dirmessage_enable</span><span class="o">=</span>YES
+<span class="nv">use_localtime</span><span class="o">=</span>YES
+<span class="nv">xferlog_enable</span><span class="o">=</span>YES
+<span class="nv">connect_from_port_20</span><span class="o">=</span>YES
+<span class="nv">secure_chroot_dir</span><span class="o">=</span>/var/run/vsftpd/empty
+<span class="nv">pam_service_name</span><span class="o">=</span>vsftpd
+
+<span class="nb">echo</span> <span class="s2">"/usr/sbin/nologin"</span> <span class="o">&gt;&gt;</span> /etc/shells
+
+useradd shangchuan <span class="nt">--shell</span> /usr/sbin/nologin <span class="nt">--home-dir</span> /path_to_directory
+passwd shangchuan
+
+或者
+
+useradd user_name <span class="nt">-o</span> <span class="nt">-u</span> UID_client <span class="nt">-g</span> GID_client <span class="nt">--shell</span> /usr/sbin/nologin <span class="nt">--home-dir</span> /path_to_directory
+passwd user_name
+<span class="nb">id </span>user_name
+
+</code></pre></div></div>
+
+<p>将用户加入附加组</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>usermod -a -G www-data shangchuan
+</code></pre></div></div>

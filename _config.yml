@@ -9,8 +9,10 @@ description: > # description of the site (multiple lines allowed)
 # goat_counter: "yoursitename" # put your GoatCounter name if you want to use GoatCounter analytics
 
   #theme: no-style-please # if you are using GitHub Pages, change it to remote_theme: riggraz/no-style-please
-remote_theme: riggraz/no-style-please
- 
+  #remote_theme: riggraz/no-style-please
+
+sass:
+  style: :compressed
 
 theme_config:
   appearance: "light" # can be "light", "dark" or "auto"
@@ -18,13 +20,6 @@ theme_config:
   date_format: "%Y-%m-%d" # customize how date is formatted
   show_description: false # show blog description in home page
 
-kramdown:
-  syntax_highlighter: rouge
-  syntax_highlighter_opts:   # Rouge Options › https\://github.com/jneen/rouge#full-options
-    css_class: highlight
-    span:
-      line_numbers: false
-    block:
-      line_numbers: true
-      start_line: 1
-
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag

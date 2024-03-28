@@ -1,12 +1,15 @@
 ---
-
+layout: post
+custom_js:
+  - prism
+  - code
 ---
 
 Syslinux 是一个 Linux 启动加载器, 用它制作启动 U 盘，具有很好的兼容性。
 如果直接将 PE 镜像刻录到 U 盘，无法正常启动的话，可以尝试一下 syslinux 的方式。
 1. 修改 syslinux.cf 文件
 
-  ```
+  ```shell
   #到下载的syslinux安装包里去找，拷贝到这里就可以了
   default /boot/vesamenu.c32          
 
